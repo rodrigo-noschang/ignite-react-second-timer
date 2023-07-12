@@ -1,8 +1,9 @@
 import * as zod from 'zod';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play } from 'phosphor-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { differenceInSeconds } from 'date-fns';
 
 import {
     CountDownContainer,
@@ -24,13 +25,14 @@ type NewCycleFormSchema = zod.infer<typeof newCycleFormSchema>
 interface Cycle {
     id: string,
     task: string,
-    minutesAmount: number
+    minutesAmount: number,
+    startDate: Date
 }
 
 export function Home() {
     const [cycles, setCycles] = useState<Cycle[]>([]);
     const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
-    const [secondsPassed, setSecondsPassed] = useState<number>(0);
+    const [secondsPassed, setSecondsPassed] = useState(0);
 
     const { register, handleSubmit, watch, reset } = useForm<NewCycleFormSchema>({
         resolver: zodResolver(newCycleFormSchema),
@@ -43,7 +45,7 @@ export function Home() {
     const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
     const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
-    const remainingSeconds = activeCycle ? totalSeconds - secondsPassed * 60 : 0;
+    const remainingSeconds = activeCycle ? totalSeconds - secondsPassed : 0;
 
     const minutesAmount = Math.floor(remainingSeconds / 60);
     const secondsAmount = remainingSeconds % 60;
@@ -55,17 +57,40 @@ export function Home() {
         const newCycle: Cycle = {
             id: String(new Date().getTime()),
             task: data.task,
-            minutesAmount: data.minutesAmount
+            minutesAmount: data.minutesAmount,
+            startDate: new Date()
         }
 
         setCycles(prevState => [...prevState, newCycle]);
         setActiveCycleId(newCycle.id);
+        setSecondsPassed(0);
 
         reset();
     }
 
     const task = watch('task');
     const isSubmitDisabled = !task;
+
+    useEffect(() => {
+        let interval: number;
+
+        if (activeCycle) {
+            interval = setInterval(() => {
+                setSecondsPassed(differenceInSeconds(new Date(), activeCycle.startDate));
+            }, 1000)
+        }
+
+        return () => {
+            clearInterval(interval);
+        }
+
+    }, [activeCycle]);
+
+    useEffect(() => {
+        if (activeCycle) {
+            document.title = `Ignite Timer - ${minutes}:${seconds}`;
+        }
+    }, [minutes, seconds])
 
     return (
         <HomeContainer>
