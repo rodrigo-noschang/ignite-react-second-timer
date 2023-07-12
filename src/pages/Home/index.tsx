@@ -1,4 +1,7 @@
+import * as zod from 'zod';
 import { Play } from 'phosphor-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
     CountDownContainer,
@@ -10,10 +13,34 @@ import {
     TaskInput
 } from './styles';
 
+const newCycleFormSchema = zod.object({
+    task: zod.string().min(1, 'Informe a tarefa'),
+    minutesAmount: zod.coerce.number().min(5).max(60)
+})
+
+type NewCycleFormSchema = zod.infer<typeof newCycleFormSchema>
+
 export function Home() {
+    const { register, handleSubmit, watch, reset } = useForm<NewCycleFormSchema>({
+        resolver: zodResolver(newCycleFormSchema),
+        defaultValues: {
+            task: '',
+            minutesAmount: 0
+        }
+    });
+
+    function handleCreateNewCycle(data: NewCycleFormSchema) {
+        console.log(data);
+
+        reset();
+    }
+
+    const task = watch('task');
+    const isSubmitDisabled = !task;
+
     return (
         <HomeContainer>
-            <form>
+            <form onSubmit={handleSubmit(handleCreateNewCycle)}>
                 <FormContainer>
                     <label htmlFor='task'>
                         Vou trabalhar em
@@ -22,6 +49,7 @@ export function Home() {
                         id='task'
                         placeholder='Dê um nome ao seu projeto'
                         list='tasks-suggestions'
+                        {...register('task')}
                     />
 
                     <datalist id='tasks-suggestions'>
@@ -39,8 +67,7 @@ export function Home() {
                         type='number'
                         placeholder='00'
                         step={5}
-                        min={5}
-                        max={60}
+                        {...register('minutesAmount')}
                     />
 
                     <span> minutos. </span>
@@ -56,7 +83,7 @@ export function Home() {
                     <span> 0 </span>
                 </CountDownContainer>
 
-                <StartCountDownButton disabled>
+                <StartCountDownButton disabled={isSubmitDisabled}>
                     <Play />
                     Começar
                 </StartCountDownButton>
