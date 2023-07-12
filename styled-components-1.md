@@ -214,3 +214,44 @@ E agora vamos colocá-lo em algum lugar da nossa aplicação, de preferência o 
 ```
 
 Vamos aprovitar os estilos globais para definir **fontes e cores**. Aqui nada novo, é fazer as importações pelo google fonts e colocar elas no index.html, conforme o próprio site sugere, e então usá-las nos estilos globais.
+
+## Compartilhamento/Herança de estilos:
+Pode acontecer de alguns componentes terem várias estilizações em comum, porém com alguns poucos detalhes de diferença entre um e outro, por exemplo, 2 inputs que têm exatamente a mesma aparência, mas um deles pode se expandir livremente, e o outro deve se manter em uma largura fixa. Nesse caso, podemos criar um componente com o estilo base, e criar os inputs de forma separada mas, dessa vez, estilizando esse componente ao invés de uma tag comum do HTML:
+
+Aqui segue o estilo base que será compartilhado entre os dois inputs
+
+```ts
+    const BaseInput = styled.input`
+        background-color: transparent;
+        height: 2.5rem;
+        border: 0;
+        border-bottom: 2px solid ${props => props.theme["gray-500"]};
+        font-weight: bold;
+        font-size: 1.125rem;
+        padding: 0 0.5rem;
+        color: ${props => props.theme["gray-100"]};
+
+        &::placeholder {
+        color: ${props => props.theme["gray-500"]};
+        }
+
+        &:focus {
+            box-shadow: none;
+            border-color: ${props => props.theme["green-500"]};
+        }
+    `;
+```
+
+Aqui estão os inputs que foram criados a partir dele:
+
+```jsx
+    export const TaskInput = styled(BaseInput)`
+        flex: 1;
+    `;
+
+    export const MinutesAmountInput = styled(BaseInput)`
+        width: 4rem;
+    `;
+```
+
+Como pode-se ver, ao invés de criarmos os botões a partir de um button normal, com o `styled.button`, estamos criando eles a partir do Base Input, com o `styled(BaseInput)`.

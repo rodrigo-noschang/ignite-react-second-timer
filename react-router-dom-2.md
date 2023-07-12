@@ -115,3 +115,63 @@ Também é importante notar que o **path** dessas rotas agora são um pouco dife
 ```
 
 As rotas que deveríamos acessar seriam: `/user/info`, e `/user/history`. 
+
+## NavLink
+O componente **NavLink** pode ser usado no lugar de links normais (âncoras) quando queremos redirecinoar o usuário para rotas internas da aplicação. A aplicação normal com link seria:
+
+```html
+    <nav>
+        <a href="baseURL/">
+            <Timer size={24} />
+        </a>
+
+        <a href="baseURL/history">
+            <Scroll size={24} />
+        </a>
+    </nav>
+```
+
+E com o NavLink, do rect-router-dom, fica:
+
+```tsx
+    <nav>
+        <NavLink to='/' title='timer'>
+            <Timer size={24} />
+        </NavLink>
+
+        <NavLink to='/history' title='history'>
+            <Scroll size={24} />
+        </NavLink>
+    </nav>
+```
+
+O title server para os leitores de tela. 
+
+Quando um link ou outro for selecionado, o navlink adiciona à ancora uma classe `active`, podemos usar ela para alterar nossas estlilizações do link, indicando qual é o link que foi selecionado:
+
+```css
+    a {
+        width: 3rem;
+        height: 3rem;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        color: ${props => props.theme["gray-100"]};
+
+        border-top: 3px solid transparent;
+        border-bottom: 3px solid transparent;
+        transition: .2s;
+
+        &:hover {
+            border-bottom-color: ${props => props.theme["green-500"]};
+        }
+
+        &.active {
+            color: ${props => props.theme["green-500"]};
+        }
+    }
+```
+
+Esse seletor `a` está dentro do componente de estilização do Header, o `HeaderContainer`.
