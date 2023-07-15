@@ -1,16 +1,32 @@
-import { useEffect, useState } from "react";
+import { differenceInSeconds } from "date-fns";
+import { useEffect, useState, useContext } from "react";
 
 import { CountDownContainer, CountDownSeparator } from "./styles"
-import { differenceInSeconds } from "date-fns";
 
-interface CountDownProps {
-    activeCycle: any
-}
+import { CycleContext } from "../../";
 
-export function Countdown({ activeCycle }: CountDownProps) {
+export function Countdown() {
     const [secondsPassed, setSecondsPassed] = useState(0);
 
+    const { activeCycle, activeCycleId, markCurrentCycleAsFinished } = useContext(CycleContext);
+
     const totalSeconds = activeCycle ? activeCycle.minutesAmount * 60 : 0;
+
+    const remainingSeconds = activeCycle ? totalSeconds - secondsPassed : 0;
+
+    const minutesAmount = Math.floor(remainingSeconds / 60);
+    const secondsAmount = remainingSeconds % 60;
+
+    const minutes = String(minutesAmount).padStart(2, '0');
+    const seconds = String(secondsAmount).padStart(2, '0');
+
+    useEffect(() => {
+        if (activeCycle) {
+            document.title = `Ignite Timer - ${minutes}:${seconds}`;
+        } else {
+            document.title = 'Ignite Timer';
+        }
+    }, [minutes, seconds, activeCycle]);
 
     useEffect(() => {
         let interval: number;
@@ -20,17 +36,8 @@ export function Countdown({ activeCycle }: CountDownProps) {
                 const secondsDiff = differenceInSeconds(new Date(), activeCycle.startDate);
 
                 if (secondsDiff >= totalSeconds) {
-                    setCycles(state => state.map(cycle => {
-                        if (cycle.id === activeCycleId) {
-                            return {
-                                ...cycle,
-                                finishedDate: new Date()
-                            }
-                        }
-                        return cycle;
-                    }))
+                    markCurrentCycleAsFinished();
 
-                    setActiveCycleId(null);
                     setSecondsPassed(totalSeconds);
                     clearInterval(interval);
                 } else {
@@ -43,7 +50,7 @@ export function Countdown({ activeCycle }: CountDownProps) {
             clearInterval(interval);
         }
 
-    }, [activeCycle, totalSeconds, activeCycleId]);
+    }, [activeCycle, totalSeconds, activeCycleId, markCurrentCycleAsFinished]);
 
     return (
         <CountDownContainer>
