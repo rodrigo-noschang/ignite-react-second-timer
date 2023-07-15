@@ -165,3 +165,39 @@ Um detalhe importante é que pode ser que, em alguns casos, o reset não funcion
         }
     });
 ```
+
+## Contexto do Formulário
+É bastante comum termos o formulário em um componente, e os inputs/container desse formulário serem outro componente, em outro arquivo. Isso organiza mais o código, mas deixa um novo problema: Os inputs precisam do **register**, que geralmente pegamos no componente pai do formulário. Para passar esse register para os inputs, podemos usar o **Contexto de Formulário**, fornecido pelo próprio react-hook-form. Primeiro vamos mudar a maneira como pegamos os retornos do **useForm**, como no exemplo acima:
+
+```js
+    const newCycleForm = useForm<NewCycleFormSchema>({
+        resolver: zodResolver(newCycleFormSchema),
+        defaultValues: {
+            task: '',
+            minutesAmount: 0
+        }
+    });
+
+    const { handleSubmit, watch, reset } = newCycleForm;
+```
+
+E agora, nos nossos inputs, vamos passar essas propriedades para ele, desestruturando esse `newCycleForm`:
+
+```jsx
+    import { FormProvider } from 'react-hook-form';
+
+    <FormProvider {...newCycleForm}>
+        <NewCycleForm />
+    </FormProvider>
+```
+
+No componente de formulário, ou no componente com os inputs, onde precisaremos usar os registers, vamos recuperar essas informações da seguinte forma:
+
+```jsx
+import { useFormContext } from 'react-hook-form';
+
+export function NewCycleForm() {
+    const { register } = useFormContext();
+    ...
+}
+```
