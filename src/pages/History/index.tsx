@@ -1,11 +1,11 @@
-import { useContext } from "react";
+// import { useContext } from "react";
 
 import { HistoryContainer, HistoryList, Status } from "./styles";
 
-import { CycleContext } from "../../contexts/CyclesContexts";
+// import { CycleContext } from "../../contexts/CyclesContexts";
 
 export function History() {
-    const { cycles } = useContext(CycleContext);
+    // const { cycles } = useContext(CycleContext);
 
     return (
         <HistoryContainer>
