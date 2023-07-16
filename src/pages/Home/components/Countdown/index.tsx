@@ -3,7 +3,7 @@ import { useEffect, useContext } from "react";
 
 import { CountDownContainer, CountDownSeparator } from "./styles"
 
-import { CycleContext } from "../../";
+import { CycleContext } from "../../../../contexts/CyclesContexts";
 
 export function Countdown() {
     const { activeCycle,
