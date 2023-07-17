@@ -5,7 +5,7 @@ interface CreateCycleData {
     minutesAmount: number
 }
 
-interface Cycle {
+export interface Cycle {
     id: string,
     task: string,
     startDate: Date,

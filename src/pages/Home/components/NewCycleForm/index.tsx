@@ -9,7 +9,6 @@ export function NewCycleForm() {
     const { activeCycle } = useContext(CycleContext);
     const { register } = useFormContext();
 
-
     return (
         <FormContainer>
             <label htmlFor='task'>
@@ -38,7 +37,7 @@ export function NewCycleForm() {
                 type='number'
                 placeholder='00'
                 step={5}
-                min={1}
+                min={5}
                 max={60}
                 disabled={!!activeCycle}
                 {...register('minutesAmount')}

@@ -64,7 +64,7 @@ export function Home() {
 
                     :
 
-                    <StartCountDownButton >
+                    <StartCountDownButton disabled={isSubmitDisabled}>
                         <Play />
                         Iniciar
                     </StartCountDownButton>
