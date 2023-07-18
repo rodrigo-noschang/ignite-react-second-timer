@@ -4,7 +4,8 @@ import ptBR from 'date-fns/locale/pt-BR';
 
 import { HistoryContainer, HistoryList, Status } from "./styles";
 
-import { Cycle, CycleContext } from "../../contexts/CyclesContexts";
+import { CycleContext } from "../../contexts/CyclesContexts";
+import { Cycle } from "../../reducers/cycles/reducer";
 
 export function History() {
     const { cycles } = useContext(CycleContext);
@@ -41,7 +42,7 @@ export function History() {
                             <tr>
                                 <td> {cycle.task} </td>
                                 <td> {cycle.minutesAmount} minutos </td>
-                                <td> {formatDistanceToNow(cycle.startDate, {
+                                <td> {formatDistanceToNow(new Date(cycle.startDate), {
                                     addSuffix: true,
                                     locale: ptBR
                                 })} </td>
