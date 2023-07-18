@@ -148,3 +148,149 @@ Para atualizar esses valores, a lógica é exatamente a mesma, porém precisamos
         activeCycleId: null
     });
 ```
+
+## Estruturando o Reducer:
+Vamos passar todo o corpo da função do reducer para outro arquivo, no `src/reducers/cycles.ts`:
+
+```js
+    export interface Cycle {
+        id: string,
+        task: string,
+        startDate: Date,
+        finishedDate?: Date,
+        minutesAmount: number,
+        interruptedDate?: Date,
+    }
+
+    interface CycleState {
+        cycles: Cycle[],
+        activeCycleId: string | null
+    }
+
+    export function cyclesReducer(state: CycleState, action: any) {
+        switch (action.type) {
+            case 'ADD_NEW_CYCLE':
+                return {
+                    ...state,
+                    cycles: [...state.cycles, action.payload.newCycle],
+                    activeCycleId: action.payload.newCycle.id
+                }
+
+            case 'INTERRUPT_CURRENT_CYCLE':
+                return {
+                    ...state,
+                    activeCycleId: null,
+                    cycles: state.cycles.map(cycle => {
+                        if (cycle.id === state.activeCycleId) {
+                            return {
+                                ...cycle,
+                                interruptedDate: new Date()
+                            }
+                        }
+                        return cycle;
+                    }),
+                }
+
+            case 'MARK_CURRENT_CYCLE_AS_FINISHED':
+                return {
+                    ...state,
+                    activeCycleId: null,
+                    cycles: state.cycles.map(cycle => {
+                        if (cycle.id === state.activeCycleId) {
+                            return {
+                                ...cycle,
+                                finishedDate: new Date()
+                            }
+                        }
+                        return cycle;
+                    }),
+                }
+
+            default:
+                return state;
+        }
+    }
+```
+
+
+E o nosso reducer fica da seguinte forma:
+
+```js
+    const [cyclesState, dispatch] = useReducer(cyclesReducer, {
+        cycles: [],
+        activeCycleId: null
+    });
+```
+
+## Tipando o Type das actions:
+Vamos começar crinado um enumerador das possíveis actions que teremos no nosso reducer, dentro do arquivo `cycles.tsx`:
+
+```js
+    export enum ActionTypes {
+        ADD_NEW_CYCLE = 'ADD_NEW_CYCLE',
+        INTERRUPT_CURRENT_CYCLE = 'INTERRUPT_CURRENT_CYCLE',
+        MARK_CURRENT_CYCLE_AS_FINISHED = 'MARK_CURRENT_CYCLE_AS_FINISHED',
+    }
+```
+
+E agora vamos substituir as strings que estão hardcoded no context e na função que acabamos de criar, pelo objeto ActionTypes. Então, onde antes estava `ADD_NEW_CYCLE`, agora vai ficar: `ActionTypes.ADD_NEW_CYCLE`.
+
+## Tipando as Actions como um todo
+Vamos mudar um pouco a estrutura das pastas. Ao invés de ser `src/reducers/cycles.ts`, vamos transformar o cycles numa pasta e renomar ele para reducer.ts, ficanod `src/reducers/cycles/reducer.ts`
+
+E agora vamos criar um novo arquivo chamado `actions.ts`, dentro de cycles. Nele, já vamos jogar a criação do **ActionTypes** também. 
+
+O que vamos fazer nesse arquivo também é criar uma funções que simplesmnete retornarão os objetos de cada dispatch. Por exemplo, no nosso dispatch de criar um novo ciclo, temos o seguinte objeto:
+
+```js
+    dispatch({  
+        type: ActionTypes.ADD_NEW_CYCLE,
+        payload: {
+            newCycle
+        }
+    })
+```
+
+Nessa nova função, vamos ter a segunite estrutura:
+
+```js
+    export function addNewCycleAction(newCycle: Cycle) {
+        return {
+            type: ActionTypes.ADD_NEW_CYCLE,
+            payload: {
+                newCycle
+            }
+        }
+    }
+```
+
+Em alguns casos, pode ser que o dado necessário para a execução da funçao nem precisa ser passada, porque ela já existe no nosso reducer, é o caso, por exemplo, do mark cycle as finished. Ele precisa do id o ciclo ativo, mas esse id já existe no nosso state "compartilhado" do próprio reducer, então a função fica da seguinte forma:
+
+```js
+    export function markCurrentCycleAsFinishedAction() {
+        return {
+            type: ActionTypes.MARK_CURRENT_CYCLE_AS_FINISHED,
+        }
+}
+```
+
+Relembrando que a função que finaliza o ciclo está da seguinte forma:
+
+```js
+    case ActionTypes.MARK_CURRENT_CYCLE_AS_FINISHED:
+        return {
+            ...state,
+            activeCycleId: null,
+            cycles: state.cycles.map(cycle => {
+                if (cycle.id === state.activeCycleId) {
+                    return {
+                        ...cycle,
+                        finishedDate: new Date()
+                    }
+                }
+                return cycle;
+            }),
+        }
+```
+
+E esse `state` está vindo do parâmetro da função fornecida pelo reducer. 
