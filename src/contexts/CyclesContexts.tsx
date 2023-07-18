@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useState } from "react";
+import { ReactNode, createContext, useReducer, useState } from "react";
 
 interface CreateCycleData {
     task: string,
@@ -33,10 +33,64 @@ interface CycleContextProviderProps {
     children: ReactNode
 }
 
+interface CycleState {
+    cycles: Cycle[],
+    activeCycleId: string | null
+}
+
 export function CycleContextProvider({ children }: CycleContextProviderProps) {
-    const [cycles, setCycles] = useState<Cycle[]>([]);
+    const [cyclesState, dispatch] = useReducer((state: CycleState, action: any) => {
+        switch (action.type) {
+            case 'ADD_NEW_CYCLE':
+                return {
+                    ...state,
+                    cycles: [...state.cycles, action.payload.newCycle],
+                    activeCycleId: action.payload.newCycle.id
+                }
+
+            case 'INTERRUPT_CURRENT_CYCLE':
+                return {
+                    ...state,
+                    activeCycleId: null,
+                    cycles: state.cycles.map(cycle => {
+                        if (cycle.id === state.activeCycleId) {
+                            return {
+                                ...cycle,
+                                interruptedDate: new Date()
+                            }
+                        }
+                        return cycle;
+                    }),
+                }
+
+            case 'MARK_CURRENT_CYCLE_AS_FINISHED':
+                return {
+                    ...state,
+                    activeCycleId: null,
+                    cycles: state.cycles.map(cycle => {
+                        if (cycle.id === state.activeCycleId) {
+                            return {
+                                ...cycle,
+                                finishedDate: new Date()
+                            }
+                        }
+                        return cycle;
+                    }),
+                }
+
+            default:
+                return state;
+        }
+    }, {
+        cycles: [],
+        activeCycleId: null
+    });
+
+    const { cycles, activeCycleId } = cyclesState;
+
+
     const [secondsPassed, setSecondsPassed] = useState(0);
-    const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
+    // const [activeCycleId, setActiveCycleId] = useState<string | null>(null);
 
     const activeCycle = cycles.find(cycle => cycle.id === activeCycleId);
 
@@ -45,16 +99,13 @@ export function CycleContextProvider({ children }: CycleContextProviderProps) {
     }
 
     function markCurrentCycleAsFinished() {
-        setCycles(state => state.map(cycle => {
-            if (cycle.id === activeCycleId) {
-                return {
-                    ...cycle,
-                    finishedDate: new Date()
-                }
+
+        dispatch({
+            type: 'MARK_CURRENT_CYCLE_AS_FINISHED',
+            payload: {
+                activeCycleId
             }
-            return cycle;
-        }))
-        setActiveCycleId(null);
+        })
     }
 
     function createNewCycle(data: CreateCycleData) {
@@ -65,25 +116,24 @@ export function CycleContextProvider({ children }: CycleContextProviderProps) {
             startDate: new Date()
         }
 
-        setCycles(prevState => [...prevState, newCycle]);
-        setActiveCycleId(newCycle.id);
-        setSecondsPassed(0);
+        dispatch({
+            type: 'ADD_NEW_CYCLE',
+            payload: {
+                newCycle
+            }
+        })
 
-        // reset();
+        setSecondsPassed(0);
     }
 
     function interruptCurrentCycle() {
-        setCycles(state => state.map(cycle => {
-            if (cycle.id === activeCycleId) {
-                return {
-                    ...cycle,
-                    interruptedDate: new Date()
-                }
-            }
-            return cycle;
-        }))
 
-        setActiveCycleId(null);
+        dispatch({
+            type: 'INTERRUPT_CURRENT_CYCLE',
+            payload: {
+                activeCycleId
+            }
+        })
         setSecondsPassed(0);
     }
 
